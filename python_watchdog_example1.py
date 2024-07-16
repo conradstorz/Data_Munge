@@ -10,18 +10,30 @@ There will be a sub-directory of the working directory of this script that conta
 import os
 import sys
 import time
+from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from watchdog.observers.polling import PollingObserver
+# from watchdog.observers.polling import PollingObserver
+# PollingObserver was not witnessing ALL events under windows running inside of VScode terminal
 from loguru import logger
+
+# constants
+RUNTIME_NAME = Path(__file__)
+CSV_EXT = [".csv"]
+EXCEL_EXT = [".xls"]
+DL_DRIVE = "D:"
+DL_USER_BASE = "Users"
+DL_USER = "Conrad"
+DL_DIRECTORY = "Downloads"
+DL_PATH = Path("D:/Users/Conrad/Downloads/")
 
 # Configure Loguru logger
 logger.remove()  # Remove default handler
 logger.add(sys.stderr, format="{time} {level} {message}", level="INFO")
-logger.add("file_{time}.log", rotation="10 MB", retention="10 days", level="DEBUG")
+logger.add("./LOGS/file_{time}.log", rotation="10 MB", retention="10 days", level="DEBUG")
 
 class MyHandler(FileSystemEventHandler):
-    def on_any_event(self, event):
+    def on_modified(self, event):
         # Log any file system event
         logger.info(f"Event type: {event.event_type}  path: {event.src_path}")
         if event.is_directory:
@@ -47,8 +59,8 @@ class WatchdogRunner:
     def setup_observer(self):
         try:
             # Use PollingObserver for better cross-platform support
-            self.observer = PollingObserver()
-            self.observer.schedule(self.handler, self.path, recursive=True)
+            self.observer = Observer()
+            self.observer.schedule(self.handler, self.path, recursive=False)
             self.observer.start()
             logger.debug("Observer started")
         except Exception as e:
@@ -97,7 +109,7 @@ class WatchdogRunner:
 if __name__ == "__main__":
     # Get the directory to watch from command line arguments or use current directory
     try:
-        watch_path = sys.argv[1] if len(sys.argv) > 1 else '.'
+        watch_path = sys.argv[1] if len(sys.argv) > 1 else DL_PATH
         
         # Ensure the watch path exists
         if not os.path.exists(watch_path):

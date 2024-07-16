@@ -1,0 +1,8 @@
+Package        Version
+-------------- -------
+colorama       0.4.6
+loguru         0.7.2
+pip            24.1.2
+setuptools     65.5.0
+watchdog       4.0.1
+win32-setctime 1.1.0
